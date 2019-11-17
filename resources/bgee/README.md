@@ -210,7 +210,12 @@ the `one` for `brain` may be seen as misleading,sr there are now `5 to 11`
 genes in play.  
 or maybe not...as it may be the only gene that lights up in both parts      
 
+At any rate generating the gene `density` of a tissue  
+and the `specificity` of a gene to an anatomical term  
+for all the species only takes several moments.
 
+N.B.  I am currently limiting all queries to __GOLD__ level
+------------------------------------------------------------
 
 
 
