@@ -24,9 +24,9 @@ Two Hours to generate 4,377,842 monarch associations
 
 There is interest in changing our bgee associations represented.  
 Key to this may their very involved concept of "rank"
-which amounts to multiple levles of "normalizations" of already nebulus numbers.  
+which amounts to multiple levels of "normalizations" of already nebulous numbers.  
 
-I like their triage aproach they call gold, silver & bronze  
+I like their triage approach they call gold, silver & bronze  
 which may as well be good, bad and ugly as they  
 do not even bother distributing the bronze by default.  
 
@@ -42,30 +42,42 @@ curl -O data/sql_lite_dump.tar.gz ftp://ftp.bgee.org/current/sql_lite_dump.tar.g
 tar -xf sql_lite_dump.tar.gz
 ```
 
-Despite the name it is a Mariadb db dump not a sqlite3 db (rats)  
+Despite the name it is a MySql/Mariadb db dump not a sqlite3 db  
 
-convert it  
+convert the db dump from mysql to sqlite3  
 ```
 ../../../scripts/mysql2sqlite sql_lite_dump.sql  > bgee_sqlite3.sql
+```
 
+read in the converted ascii db dump and re index into a binary blob  
+ 
+
+```
 sqlite3 bgee.sqlite < bgee_sqlite3.sql
 ```
 
-Takes about 15 minutes to reconsitute the database from the sql dump
+Takes about 15 minutes to reconsitute a database from the sql dump  
+This 15 minute process will need repeating each time they provide a new db dump  
+which from preusing their news can be safely considered as "not most years".   
+
+Sqlite3 takes no significant time to start the reconsituted database   
 
 ```
-sqlite3 bgee.sqlite
+$ sqlite3 bgee.sqlite
+sqlite> .once ../bgee_sqlite3_schema.ddl
 sqlite> .fullschema
-```
-save output as `bgee_sqlite3_schema.ddl`
 
-then  
+```
+which saves the isolated schema (data definition language)  
+as [bgee_sqlite3_schema.ddl](./bgee_sqlite3_schema.ddl)
+
+from which we can extract meaning   
 ```
 ~/GitHub/SQLiteViz/sqlite_dot.awk bgee_sqlite3_schema.ddl > bgee_sqlite3_schema.gv
 
 dot -T svg  bgee_sqlite3_schema.gv > bgee_sqlite3_schema.svg
 ```
-and we have a handy dandy ER diagram  
+and we have a handy dandy ER diagram of what BGEE provided  
 ![ER diagram](./bgee_sqlite3_schema.svg)
 
 ```
@@ -115,7 +127,7 @@ globalExpression
 
 ```
 
-locally I might run `xdot bgee_sqlite3_schema.gv` instead of the sgv.
+localy I might run `xdot bgee_sqlite3_schema.gv` instead of looking at the sgv.
 
 -------------------------------------------------------------
 
@@ -166,9 +178,9 @@ cut  -f 3 -d ':' translationtable/bgee.yaml |
 ----------------------------------------------
 
 in the db selecting for   
-    speciesID, geneId, anatEntityId, summaryQuality, stageId, genomeVersion  
+    `speciesID`, `geneId`, `anatEntityId`, `summaryQuality`, `stageId`, `genomeVersion`  
 e.g  
-    6239|WBGene00002059|UBERON:0000465|GOLD|UBERON:0000107|WBcel235
+    `6239|WBGene00002059|UBERON:0000465|GOLD|UBERON:0000107|WBcel235`
 
 ```
 sqlite> .read ../select_query.sql
@@ -183,7 +195,7 @@ sqlite> .read ../select_query.sql
 9,825,168
 Run Time: real 70.235 user 41.318082 sys 28.917016
 ```
-Puts together 10M _GOLD_ level records in seventy seconds
+Puts together 10M _GOLD_ level records (monarch associations) in seventy seconds
 
 ---------------------------------------------------------
 
@@ -194,27 +206,34 @@ Start a SWAG of a data model
 ![datamodle](bgee_datamodel_swag.svg)
 
 
-There is a request to provide some feedback on how specific a gene 
-is to an anatomical structure in a species.
+N.B.  I am currently limiting all sql queries to __GOLD__ level
+------------------------------------------------------------
+including __SILVER__ would triple the volume of associations
 
-At ingest is not the place to answer this question at all levles of 
-granularity a user may intend. But it is we we can ensure the base information 
-is availabe and provide guidance to reasoners in the form of counts of both 
-genes and anatomy per species. 
+There is a request to provide some feedback on how specific a gene 
+is to an anatomical term in a species.
+
+At ingest is not the place to answer this question at all levels of 
+granularity a user may intend.   
+But it is we we can ensure the base information 
+is available and provide guidance to downstream reasoners 
+in the form of counts of both genes and anatomy per species.   
 (which will on occasion be exactly the granularity desired)  
 
-A ficional example of where simple counts fall down is 
+A fictional example of where simple counts fall down is 
 `brain` may have a count of `one` gene expressed   
-but if `midbrain` and `hindbrain` each have acount of `5` genes expressed 
-the `one` for `brain` may be seen as misleading,sr there are now `5 to 11`
-genes in play.  
-or maybe not...as it may be the only gene that lights up in both parts      
+but if `midbrain` and `hindbrain` each have a count of `5` genes expressed 
+the `one` for `brain` may be seen as misleading,  
+as there are now  between 5 and  11 genes in play.  
+or maybe not...as it may be the only gene that lights up in both parts   
 
-At any rate generating the gene `density` of a tissue  
-and the `specificity` of a gene to an anatomical term  
-for all the species only takes several moments.
+At any rate generating the gene `density` of a anatomy items,   
+    - _how many genes per anatomy item?_    
+and the `specificity` of a gene to an anatomical item,   
+    - _in how many anatomy items is this gene expressed?_   
+for all the species takes about three minutes.
 
-N.B.  I am currently limiting all queries to __GOLD__ level
+
 ------------------------------------------------------------
 
 
