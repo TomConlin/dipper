@@ -166,8 +166,8 @@ cut  -f 3 -d ':' translationtable/bgee.yaml |
 ----------------------------------------------
 
 in the db selecting for   
-    speciesID, geneId, anatEntityId, summaryQuality, stageId, genomeVersion
-e.g
+    speciesID, geneId, anatEntityId, summaryQuality, stageId, genomeVersion  
+e.g  
     6239|WBGene00002059|UBERON:0000465|GOLD|UBERON:0000107|WBcel235
 
 ```
