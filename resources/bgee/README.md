@@ -117,6 +117,13 @@ globalExpression
 
 locally I might run `xdot bgee_sqlite3_schema.gv` instead of the sgv.
 
+-------------------------------------------------------------
+
+build up a local tt of their `genomeVersion` to `NCBIAssembly:id`
+
+[bgee.yaml](../../translationtable/bgee.yaml)
+
+-------------------------------------------------------------
 
 ```
 # to get a list of taxon to filter for in a sql query
@@ -180,17 +187,28 @@ Puts together 10M _GOLD_ level records in seventy seconds
 
 ---------------------------------------------------------
 
-build up a local tt of their `genomeVersion` to `NCBIAssembly:id`
-
-[bgee.yaml](../../translationtable/bgee.yaml)
-
--------------------------------------------------------------
 
 Start a SWAG of a data model  
 
 
 ![datamodle](bgee_datamodel_swag.svg)
 
+
+There is a request to provide some feedback on how specific a gene 
+is to an anatomical structure in a species.
+
+At ingest is not the place to answer this question at all levles of 
+granularity a user may intend. But it is we we can ensure the base information 
+is availabe and provide guidance to reasoners in the form of counts of both 
+genes and anatomy per species. 
+(which will on occasion be exactly the granularity desired)  
+
+A ficional example of where simple counts fall down is 
+`brain` may have a count of `one` gene expressed   
+but if `midbrain` and `hindbrain` each have acount of `5` genes expressed 
+the `one` for `brain` may be seen as misleading,sr there are now `5 to 11`
+genes in play.  
+or maybe not...as it may be the only gene that lights up in both parts      
 
 
 
