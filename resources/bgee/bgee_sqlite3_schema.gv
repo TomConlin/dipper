@@ -1,0 +1,33 @@
+digraph "bgee_sqlite3_schema.ddl" {
+	rankdir = "LR"
+	"anatEntity" [
+		label = "anatEntity| <anatEntityId> anatEntityId | <anatEntityName> anatEntityName | <anatEntityDescription> anatEntityDescription"
+		shape = "Mrecord"
+	];
+	"gene":speciesId -> "species":speciesId;
+	"gene" [
+		label = "gene| <bgeeGeneId> bgeeGeneId | <geneId> geneId | <geneName> geneName | <geneDescription> geneDescription | <speciesId> speciesId"
+		shape = "Mrecord"
+	];
+	"globalCond":anatEntityId -> "anatEntity":anatEntityId;
+	"globalCond":stageId -> "stage":stageId;
+	"globalCond":speciesId -> "species":speciesId;
+	"globalCond" [
+		label = "globalCond| <globalConditionId> globalConditionId | <anatEntityId> anatEntityId | <stageId> stageId | <speciesId> speciesId"
+		shape = "Mrecord"
+	];
+	"globalExpression":bgeeGeneId -> "gene":bgeeGeneId;
+	"globalExpression":globalConditionId -> "globalCond":globalConditionId;
+	"globalExpression" [
+		label = "globalExpression| <globalExpressionId> globalExpressionId | <bgeeGeneId> bgeeGeneId | <globalConditionId> globalConditionId | <summaryQuality> summaryQuality"
+		shape = "Mrecord"
+	];
+	"species" [
+		label = "species| <speciesId> speciesId | <genus> genus | <species> species | <speciesCommonName> speciesCommonName | <genomeVersion> genomeVersion | <genomeSpeciesId> genomeSpeciesId"
+		shape = "Mrecord"
+	];
+	"stage" [
+		label = "stage| <stageId> stageId | <stageName> stageName | <stageDescription> stageDescription"
+		shape = "Mrecord"
+	];
+}

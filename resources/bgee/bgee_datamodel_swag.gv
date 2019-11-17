@@ -1,0 +1,22 @@
+
+digraph{
+    subgraph cluster_0 { // , ltail=cluster_0 , lhead=cluster_n
+        label = "Monarch OBAN association for Gene:Id expressed in Anatomy:Id"
+        MONARCH -> "Gene:Id" [label="OBAN:association_has_subject"];
+        MONARCH -> "RO:0002206!expressed in" [label="OBAN:association_has_predicate"];
+        MONARCH -> "Anatomy:Id" [label="OBAN:association_has_object"];
+    }
+
+    MONARCH -> "OBAN:Association" [label="rdf:type"];
+    MONARCH -> LITERAL [label="rdfs:label"];
+    MONARCH -> "GOLD|SILVER" [label="GENO:0000866 ! has_quantifier"];
+
+    # may need different predicate
+    MONARCH -> "Stage:Id" [label="NCIT:C48308 ! Stage"];
+
+    # gene->taxon probably pre-exists via ncbigene.py ingest (for major species)
+    "Gene:Id" -> NCBITaxon  [label="RO:0002162 ! in taxon"];
+    "Anatomy:Id" ->  NCBITaxon [label="RO:0002162 ! in taxon"];
+    MONARCH -> "NCBIAssembly:Id" [label="~~~expression context"];
+    "NCBIAssembly:Id" -> "genomeVersion"  [label="~~~synomym"];
+}

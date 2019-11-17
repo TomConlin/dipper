@@ -1,0 +1,16 @@
+graph 1 6.25 5.5764
+node anatEntity 5.2778 4.9306 1.875 1.2917 "anatEntity| <anatEntityId> anatEntityId | <anatEntityName> anatEntityName | <anatEntityDescription> anatEntityDescription" solid Mrecord black lightgrey
+node gene 3 2.0972 1.4583 1.9306 "gene| <bgeeGeneId> bgeeGeneId | <geneId> geneId | <geneName> geneName | <geneDescription> geneDescription | <speciesId> speciesId" solid Mrecord black lightgrey
+node species 5.2778 1.125 1.9444 2.25 "species| <speciesId> speciesId | <genus> genus | <species> species | <speciesCommonName> speciesCommonName | <genomeVersion> genomeVersion | <\
+genomeSpeciesId> genomeSpeciesId" solid Mrecord black lightgrey
+node globalCond 3 4.125 1.6111 1.6111 "globalCond| <globalConditionId> globalConditionId | <anatEntityId> anatEntityId | <stageId> stageId | <speciesId> speciesId" solid Mrecord black lightgrey
+node stage 5.2778 3.3889 1.4861 1.2917 "stage| <stageId> stageId | <stageName> stageName | <stageDescription> stageDescription" solid Mrecord black lightgrey
+node globalExpression 0.84722 3.6667 1.6944 1.6111 "globalExpression| <globalExpressionId> globalExpressionId | <bgeeGeneId> bgeeGeneId | <globalConditionId> globalConditionId | <summaryQuality> \
+summaryQuality" solid Mrecord black lightgrey
+edge gene species 4 3.75 1.2917 4.0184 1.2917 4.001 1.6155 4.1712 1.7268 solid black
+edge globalCond anatEntity 4 3.8056 4.125 4.237 4.125 3.9263 4.8827 4.1838 5.0603 solid black
+edge globalCond species 4 3.8056 3.4861 4.5466 3.4861 3.653 1.9976 4.1642 1.7882 solid black
+edge globalCond stage 4 3.8056 3.8056 4.0846 3.8056 4.1588 3.6309 4.3707 3.5735 solid black
+edge globalExpression gene 4 1.6944 3.6667 2.1785 3.6667 1.8081 2.7998 2.1119 2.6169 solid black
+edge globalExpression globalCond 4 1.6944 3.3472 2.1738 3.3472 1.7668 4.2252 2.0592 4.4104 solid black
+stop
