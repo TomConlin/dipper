@@ -17,31 +17,34 @@ real	120m17.456s
 user	119m29.924s
 sys	0m27.303s
 ```
-Two Hours 4,377,842  monarch associations
+
+Two Hours to generate 4,377,842 monarch associations
+
 ------------------------------------
 
-There is interest in changing our bgee associations represented
-key to this may their very involved concept of "rank"
-which amounts to multiple levles of "normalizations" of already nebulus numbers
+There is interest in changing our bgee associations represented.  
+Key to this may their very involved concept of "rank"
+which amounts to multiple levles of "normalizations" of already nebulus numbers.  
 
-I like their triage aproach theo call glold, silver & bronze
-which may as well be good bad and ugly as they
-do not even bother distributing the bronze by default
+I like their triage aproach they call gold, silver & bronze  
+which may as well be good, bad and ugly as they  
+do not even bother distributing the bronze by default.  
 
 
-Download files described here
+Download files described here  
     https://bgee.org/?page=doc&action=call_files
 
 ------------------------------------------------------------
-in `./data/`
+in `./data/` because I don't like huge data files in git   
+
 ```
 curl -O data/sql_lite_dump.tar.gz ftp://ftp.bgee.org/current/sql_lite_dump.tar.gz
 tar -xf sql_lite_dump.tar.gz
 ```
 
-Despite the name it is a Mariadb db dump not a sqlite3 db (rats)
+Despite the name it is a Mariadb db dump not a sqlite3 db (rats)  
 
-convert it
+convert it  
 ```
 ../../../scripts/mysql2sqlite sql_lite_dump.sql  > bgee_sqlite3.sql
 
@@ -56,13 +59,13 @@ sqlite> .fullschema
 ```
 save output as `bgee_sqlite3_schema.ddl`
 
-then
+then  
 ```
 ~/GitHub/SQLiteViz/sqlite_dot.awk bgee_sqlite3_schema.ddl > bgee_sqlite3_schema.gv
 
 dot -T svg  bgee_sqlite3_schema.gv > bgee_sqlite3_schema.svg
 ```
-and we have a handy dandy ER diagram
+and we have a handy dandy ER diagram  
 ![ER diagram](./bgee_sqlite3_schema.svg)
 
 ```
@@ -70,8 +73,7 @@ dot -T plain-ext  bgee_sqlite3_schema.gv |
     awk -F"^graph |^node |^edge |^stop" '/^node / {gsub("\\\n","");split($0,a," ");print a[2];for(i=3;i<length(a);i++)if(match(a[i],"<"))print "\t" substr(a[i],2,length(a[i])-2)}'
 ```
 
-
-and a handy plain text list to grab tables & fields from
+and a handy plain text list to grab tables & fields from  
 
 ```
 anatEntity
@@ -113,7 +115,7 @@ globalExpression
 
 ```
 
-   xdot bgee_sqlite3_schema.gv
+locally I might run `xdot bgee_sqlite3_schema.gv` instead of the sgv.
 
 
 ```
@@ -156,7 +158,7 @@ cut  -f 3 -d ':' translationtable/bgee.yaml |
 
 ----------------------------------------------
 
-in the db selecting
+in the db selecting for   
     speciesID, geneId, anatEntityId, summaryQuality, stageId, genomeVersion
 e.g
     6239|WBGene00002059|UBERON:0000465|GOLD|UBERON:0000107|WBcel235
@@ -166,7 +168,8 @@ sqlite> .read ../select_query.sql
 32,589,067
 Run Time: real 181.538 user 72.464747 sys 58.335826
 ```
-Puts together _ALL_ 32M records in three minutes
+Puts together _ALL_ 32M records (monarch associations) in three minutes
+
 ---------------------------------------------------
 ```
 sqlite> .read ../select_query.sql
@@ -174,6 +177,7 @@ sqlite> .read ../select_query.sql
 Run Time: real 70.235 user 41.318082 sys 28.917016
 ```
 Puts together 10M _GOLD_ level records in seventy seconds
+
 ---------------------------------------------------------
 
 build up a local tt of their `genomeVersion` to `NCBIAssembly:id`
@@ -182,7 +186,7 @@ build up a local tt of their `genomeVersion` to `NCBIAssembly:id`
 
 -------------------------------------------------------------
 
-Start a SWAG of a data model
+Start a SWAG of a data model  
 
 
 ![datamodle](bgee_datamodel_swag.svg)
