@@ -34,8 +34,10 @@ do not even bother distributing the bronze by default.
 Download files described here  
     https://bgee.org/?page=doc&action=call_files
 
+ftp://ftp.bgee.org/current/sql_lite_dump.tar.gz
 ------------------------------------------------------------
 in `./data/` because I don't like huge data files in git   
+
 
 ```
 curl -O data/sql_lite_dump.tar.gz ftp://ftp.bgee.org/current/sql_lite_dump.tar.gz
@@ -58,7 +60,8 @@ sqlite3 bgee.sqlite < bgee_sqlite3.sql
 
 Takes about 15 minutes to reconsitute a database from the sql dump  
 This 15 minute process will need repeating each time they provide a new db dump  
-which from preusing their news can be safely considered as "not most years".   
+which from preusing their news seems to be 14 or less in 7-ish years.
+So twice a year maybe.   
 
 Sqlite3 takes no significant time to start the reconsituted database   
 
@@ -80,6 +83,14 @@ dot -T svg  bgee_sqlite3_schema.gv > bgee_sqlite3_schema.svg
 and we have a handy dandy ER diagram of what BGEE provided  
 ![ER diagram](./bgee_sqlite3_schema.svg)
 
+
+
+Note that `stage` is an important component for understanding 
+what a "count" means in this data model.  
+Which susgests `stage` information may need to make its way into the front end.  
+
+
+--------------------------------------------------------------
 ```
 dot -T plain-ext  bgee_sqlite3_schema.gv |
     awk -F"^graph |^node |^edge |^stop" '/^node / {gsub("\\\n","");split($0,a," ");print a[2];for(i=3;i<length(a);i++)if(match(a[i],"<"))print "\t" substr(a[i],2,length(a[i])-2)}'
@@ -208,36 +219,58 @@ Start a SWAG of a data model
 
 N.B.  I am currently limiting all sql queries to __GOLD__ level
 ------------------------------------------------------------
-including __SILVER__ would triple the volume of associations
+ - this limit doubles the number of associations compared with existing ingest.    
+ - changes from existing include
+    - more than twenty associations in the case of many with high confidance
+    - fewer than twenty associations in the case less confidence 
+ - including __SILVER__ would 
+    - triple the volume of associations compared with just gold
+    - be 8 times the volume of associations compared with existing ingest
+
+
+-----------------------------------------------------------------------
 
 There is a request to provide some feedback on how specific a gene 
 is to an anatomical term in a species.
 
+see: https://github.com/monarch-initiative/dipper/issues/865
+
 At ingest is not the place to answer this question at all levels of 
 granularity a user may intend.   
-But it is we we can ensure the base information 
-is available and provide guidance to downstream reasoners 
-in the form of counts of both genes and anatomy per species.   
-(which will on occasion be exactly the granularity desired)  
+But it is we we can ensure the base information is available 
+and that it provide guidance for downstream filtering.
 
-A fictional example of where simple counts fall down is 
-`brain` may have a count of `one` gene expressed   
-but if `midbrain` and `hindbrain` each have a count of `5` genes expressed 
-the `one` for `brain` may be seen as misleading,  
-as there are now  between 5 and  11 genes in play.  
-or maybe not...as it may be the only gene that lights up in both parts   
+note!  BGEE does its own propagating up anatomy and stage ontologies  
 
-At any rate generating the gene `density` of a anatomy items,   
-    - _how many genes per anatomy item?_    
-and the `specificity` of a gene to an anatomical item,   
+This means that even with the ontologies it may be difficult to determine
+primary observation from infered propatation. 
+(without the ontologies forget it)
+
+For example the anatomy item with the greatest gene density is 
+the human multicellular organism with 41,909 distinct genes expressed
+during the life cycle stage.  mmm-K
+
+Leaf nodes in the ontology will be the easiest to reason about counting  
+But that information is not on hand at ingest.  
+
+I expect intermediate ontology nodes may be the sum of their children's counts or
+also have their own observations added in as well depending 
+on the granularity of the experiment reported.   
+
+
+At any rate, generating the gene `density` of a anatomy item,   
+    - _how many distinct genes per anatomy item?_  
+
+and the `specificity` of a gene to anatomical items,   
     - _in how many anatomy items is this gene expressed?_   
-for all the species takes about three minutes.
+
+for all the species & stages takes about three minutes.
 
 
 ------------------------------------------------------------
 
-
-
+Understanding a bit more about the distribution of those counts
+per species may shed some light on legitimate uses.
 
 
 
