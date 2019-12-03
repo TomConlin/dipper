@@ -1,15 +1,12 @@
 
 -- .read select_query.sql
-select -- count(*)
-species.speciesID,
-gene.geneId,
-anatEntity.anatEntityId,
-summaryQuality,
-stage.stageId,
-genomeVersion, 
-count(distinct gene.geneId,anatEntity.anatEntityId) specificty
-
-
+.once species_gene_anatomy_stage_genome.unl
+select distinct 
+    species.speciesID,
+    gene.geneId,
+    anatEntity.anatEntityId,
+    stage.stageId,
+    genomeVersion 
  from globalExpression
   join globalCond on globalExpression.globalConditionId == globalCond.globalConditionId
   join species on globalCond.speciesId == species.speciesId
@@ -22,12 +19,9 @@ count(distinct gene.geneId,anatEntity.anatEntityId) specificty
     '9597','9598','9606','9615','9685','9796','9823','9913',
     '9986','10090','10116','10141','13616','28377','9544'
  )
-   and summaryQuality = 'GOLD'
---group by summaryQuality, anatEntity.anatEntityId, species.speciesID, stage.stageId
-order by species.speciesID, summaryQuality
---
-limit 100
-
+   and summaryQuality == 'GOLD'
+   -- and globalExpression.propagation == 'self% (doesn't exist yet)
+order by species.speciesID
 ;
 
 
@@ -76,7 +70,9 @@ select species.speciesID,
  )
    and summaryQuality = 'GOLD'
 group by gene.geneId
-limit 100
+-- order by 3 asc -- desc
+having count(gene.geneId) == 1
+-- limit 100
 ;
 
 -- ~80 sec
