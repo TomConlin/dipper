@@ -22,21 +22,21 @@ Two Hours to generate 4,377,842 monarch associations
 
 ------------------------------------
 
-There is interest in changing our bgee associations represented.  
+There is interest in changing our bgee associations represented.
 Key to this may their very involved concept of "rank"
-which amounts to multiple levels of "normalizations" of already nebulous numbers.  
+which amounts to multiple levels of "normalizations" of already nebulous numbers.
 
-I like their triage approach they call gold, silver & bronze  
-which may as well be good, bad and ugly as they  
-do not even bother distributing the bronze by default.  
+I like their triage approach they call gold, silver & bronze
+which may as well be good, bad and ugly as they
+do not even bother distributing the bronze by default.
 
 
-Download files described here  
+Download files described here
     https://bgee.org/?page=doc&action=call_files
 
 ftp://ftp.bgee.org/current/sql_lite_dump.tar.gz
 ------------------------------------------------------------
-in `./data/` because I don't like huge data files in git   
+in `./data/` because I don't like huge data files in git
 
 
 ```
@@ -44,50 +44,70 @@ curl -O data/sql_lite_dump.tar.gz ftp://ftp.bgee.org/current/sql_lite_dump.tar.g
 tar -xf sql_lite_dump.tar.gz
 ```
 
-Despite the name it is a MySql/Mariadb db dump not a sqlite3 db  
+Despite the name it is a MySql/Mariadb db dump not a sqlite3 db
 
-convert the db dump from mysql to sqlite3  
+convert the db dump from mysql to sqlite3
 ```
 ../../../scripts/mysql2sqlite sql_lite_dump.sql  > bgee_sqlite3.sql
 ```
 
-read in the converted ascii db dump and re index into a binary blob  
- 
+read in the converted ascii db dump and re index into a binary blob
+
 
 ```
 sqlite3 bgee.sqlite < bgee_sqlite3.sql
 ```
 
-Takes about 15 minutes to reconsitute a database from the sql dump  
-This 15 minute process will need repeating each time they provide a new db dump  
+Takes about 15 minutes to reconsitute a database from the sql dump
+This 15 minute process will need repeating each time they provide a new db dump
 which from preusing their news seems to be 14 or less in 7-ish years.
-So twice a year maybe.   
+So twice a year maybe.
 
-Sqlite3 takes no significant time to start the reconsituted database   
+
+-- to compress it from ~2.3G to ~660M
+-- since it may be downloaded many times (from DipperCache?)
 
 ```
-$ sqlite3 bgee.sqlite
+gzip -c bgee.sqlite > bgee.sqlite.gz
+
+```
+
+-- Sqlite3 takes no significant time to start the reconsituted database
+
+
+```
+# to unzip w/o an overt copy
+
+mkfifo -m 0666 bgee.sqlite
+gzip -d < bgee.sqlite.gz > bgee.sqlite
+sqlite3 bgee.sqlite && rm bgee.sqlite
+```
+
+While the database is running (type `.quit` to exit) we can
+...
+
+```
 sqlite> .once ../bgee_sqlite3_schema.ddl
 sqlite> .fullschema
 
 ```
-which saves the isolated schema (data definition language)  
+which saves the isolated schema (data definition language)
 as [bgee_sqlite3_schema.ddl](./bgee_sqlite3_schema.ddl)
 
-from which we can extract meaning   
+from which we can extract meaning
 ```
 ~/GitHub/SQLiteViz/sqlite_dot.awk bgee_sqlite3_schema.ddl > bgee_sqlite3_schema.gv
 
 dot -T svg  bgee_sqlite3_schema.gv > bgee_sqlite3_schema.svg
 ```
-and we have a handy dandy ER diagram of what BGEE provided  
+and we have a handy dandy ER diagram of what BGEE provided
 ![ER diagram](./bgee_sqlite3_schema.svg)
 
 
 
-Note that `stage` is an important component for understanding 
-what a "count" means in this data model.  
-Which susgests `stage` information may need to make its way into the front end.  
+Note that `stage` is an important component for understanding
+what a "count" means in this data model.
+Which susgests `stage` information may need to make its way into the front end.
 
 
 --------------------------------------------------------------
@@ -96,7 +116,7 @@ dot -T plain-ext  bgee_sqlite3_schema.gv |
     awk -F"^graph |^node |^edge |^stop" '/^node / {gsub("\\\n","");split($0,a," ");print a[2];for(i=3;i<length(a);i++)if(match(a[i],"<"))print "\t" substr(a[i],2,length(a[i])-2)}'
 ```
 
-and a handy plain text list to grab tables & fields from  
+and a handy plain text list to grab tables & fields from
 
 ```
 anatEntity
@@ -186,13 +206,14 @@ cut  -f 3 -d ':' translationtable/bgee.yaml |
 '9986','10090','10116','10141','13616','28377','9544'
 ```
 
-----------------------------------------------
+to include in a seperate [sql select query file](./select_query.sql)
 
-in the db selecting for   
-    `speciesID`, `geneId`, `anatEntityId`, `summaryQuality`, `stageId`, `genomeVersion`  
-e.g  
+where we are selecting for
+    `speciesID`, `geneId`, `anatEntityId`, `summaryQuality`, `stageId`, `genomeVersion`
+e.g
     `6239|WBGene00002059|UBERON:0000465|GOLD|UBERON:0000107|WBcel235`
 
+-----------------------------------------------------------
 ```
 sqlite> .read ../select_query.sql
 32,589,067
@@ -210,8 +231,9 @@ Puts together 10M _GOLD_ level records (monarch associations) in seventy seconds
 
 ---------------------------------------------------------
 
+Start writing a SWAG data model as a Graphviz dot file [bgee_datamodel_swag.gv](bgee_datamodel_swag.gv)
+which looks like:
 
-Start a SWAG of a data model  
 
 
 ![datamodle](bgee_datamodel_swag.svg)
@@ -219,50 +241,50 @@ Start a SWAG of a data model
 
 N.B.  I am currently limiting all sql queries to __GOLD__ level
 ------------------------------------------------------------
- - this limit doubles the number of associations compared with existing ingest.    
+ - this limit doubles the number of associations compared with existing ingest.
  - changes from existing include
     - more than twenty associations in the case of many with high confidance
-    - fewer than twenty associations in the case less confidence 
- - including __SILVER__ would 
+    - fewer than twenty associations in the case less confidence
+ - including __SILVER__ would
     - triple the volume of associations compared with just gold
     - be 8 times the volume of associations compared with existing ingest
 
 
 -----------------------------------------------------------------------
 
-There is a request to provide some feedback on how specific a gene 
+There is a request to provide some feedback on how specific a gene
 is to an anatomical term in a species.
 
 see: https://github.com/monarch-initiative/dipper/issues/865
 
-At ingest is not the place to answer this question at all levels of 
-granularity a user may intend.   
-But it is we we can ensure the base information is available 
+At ingest is not the place to answer this question at all levels of
+granularity a user may intend.
+But it is we we can ensure the base information is available
 and that it provide guidance for downstream filtering.
 
-note!  BGEE does its own propagating up anatomy and stage ontologies  
+note!  BGEE does its own propagating up anatomy and stage ontologies
 
 This means that even with the ontologies it may be difficult to determine
-primary observation from infered propatation. 
+primary observation from infered propatation.
 (without the ontologies forget it)
 
-For example the anatomy item with the greatest gene density is 
+For example the anatomy item with the greatest gene density is
 the human multicellular organism with 41,909 distinct genes expressed
 during the life cycle stage.  mmm-K
 
-Leaf nodes in the ontology will be the easiest to reason about counting  
-But that information is not on hand at ingest.  
+Leaf nodes in the ontology will be the easiest to reason about counting
+But that information is not on hand at ingest.
 
 I expect intermediate ontology nodes may be the sum of their children's counts or
-also have their own observations added in as well depending 
-on the granularity of the experiment reported.   
+also have their own observations added in as well depending
+on the granularity of the experiment reported.
 
 
-At any rate, generating the gene `density` of a anatomy item,   
-    - _how many distinct genes per anatomy item?_  
+At any rate, generating the gene `density` of a anatomy item,
+    - _how many distinct genes per anatomy item?_
 
-and the `specificity` of a gene to anatomical items,   
-    - _in how many anatomy items is this gene expressed?_   
+and the `specificity` of a gene to anatomical items,
+    - _in how many anatomy items is this gene expressed?_
 
 for all the species & stages takes about three minutes.
 
@@ -271,6 +293,22 @@ for all the species & stages takes about three minutes.
 
 Understanding a bit more about the distribution of those counts
 per species may shed some light on legitimate uses.
+
+
+-------------------------------------------------------------
+
+I have had an exchange with folks at BGEE reguarding including
+a way to differentiate primary v.s. infered statments of expression.
+It seems they may have a new release including this data that allows
+more meaningful counts in a month or two.
+I will back burner this aspect till then and work on the rest.
+
+--------------------------------------------------------------
+
+
+
+
+
 
 
 
