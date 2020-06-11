@@ -54,11 +54,12 @@ class OMIA(OMIMSource):
             'file': 'omia.xml.gz',
             # CNAME broken? urllib not following redirects??
             # 'url': 'http://omia.angis.org.au/dumps/omia.xml.gz'
-            'url': 'http://compldb.angis.org.au/dumps/omia.xml.gz',
+            # 'url': 'http://compldb.angis.org.au/dumps/omia.xml.gz',
+            'url': 'https://omia.org/dumps/omia.xml.gz'
             # see dipper/resources/omia/omia_xml.*  for xml xpaths and more
         },
-        'causal_mutations':  {  # not used yet
-            'file':  'causal_mutations.tab',
+        'causal_mutations': {  # not used yet
+            'file': 'causal_mutations.tab',
             'columns': [  # expected
                 'gene_symbol',
                 'ncbi_gene_id',
@@ -70,10 +71,8 @@ class OMIA(OMIMSource):
         },
     }
 
-    def __init__(self,
-                 graph_type,
-                 are_bnodes_skolemized,
-                 data_release_version=None):
+    def __init__(
+            self, graph_type, are_bnodes_skolemized, data_release_version=None):
         super().__init__(
             graph_type=graph_type,
             are_bnodes_skolemized=are_bnodes_skolemized,
@@ -191,7 +190,7 @@ class OMIA(OMIMSource):
         LOG.info("Scrubbing out the nasty characters that break our parser.")
 
         myfile = '/'.join((self.rawdir, self.files['data']['file']))
-        tmpfile = '/'.join((self.rawdir, self.files['data']['file']+'.tmp.gz'))
+        tmpfile = '/'.join((self.rawdir, self.files['data']['file'] + '.tmp.gz'))
         tmp = gzip.open(tmpfile, 'wb')
         du = DipperUtil()
         with gzip.open(myfile, 'rb') as readbin:
@@ -321,7 +320,7 @@ class OMIA(OMIMSource):
         breed_label = row['breed_name']
         species_label = self.label_hash.get(tax_id)
         if species_label is not None:
-            breed_label = breed_label + ' ('+species_label+')'
+            breed_label = breed_label + ' ('+species_label + ')'
 
         model.addIndividualToGraph(breed_id, breed_label, tax_id)
         self.label_hash[breed_id] = breed_label
@@ -364,7 +363,7 @@ class OMIA(OMIMSource):
 
         species_id = 'NCBITaxon:' + str(gb_species_id)
         # use this instead
-        species_label = self.label_hash.get('NCBITaxon:'+gb_species_id)
+        species_label = self.label_hash.get('NCBITaxon:' + gb_species_id)
         if sp_phene_label is None and omia_label is not None \
                 and species_label is not None:
             sp_phene_label = ' '.join((omia_label, 'in', species_label))
@@ -376,7 +375,7 @@ class OMIA(OMIMSource):
         # if they are populated, with a tag at the end.
         for item in ['clin_feat', 'history', 'pathology', 'mol_gen', 'control']:
             if row[item] is not None and row[item] != '':
-                model.addDescription(sp_phene_id, row[item] + ' ['+item+']')
+                model.addDescription(sp_phene_id, row[item] + ' [' + item + ']')
         # if row['symbol'] is not None:  # species-specific
         # CHECK ME - sometimes spaces or gene labels
         #     gu.addSynonym(g, sp_phene, row['symbol'])
@@ -443,7 +442,7 @@ class OMIA(OMIMSource):
         reference.addRefToGraph()
 
         if row['pubmed_id'] is not None:
-            pmid = 'PMID:'+str(row['pubmed_id'])
+            pmid = 'PMID:' + str(row['pubmed_id'])
             self.id_hash['article'][row['article_id']] = pmid
             model.addSameIndividual(iarticle_id, pmid)
             model.addComment(pmid, iarticle_id.replace("_:", ''))
@@ -497,7 +496,7 @@ class OMIA(OMIMSource):
         self.id_hash['gene'][row['gene_id']] = gene_id
         gene_label = row['symbol']
         self.label_hash[gene_id] = gene_label
-        tax_id = 'NCBITaxon:'+str(row['gb_species_id'])
+        tax_id = 'NCBITaxon:' + str(row['gb_species_id'])
         if row['gene_type'] is not None:
             gene_type_id = self.resolve(row['gene_type'])
             model.addClassToGraph(gene_id, gene_label, gene_type_id)
@@ -600,7 +599,7 @@ class OMIA(OMIMSource):
                 elif phene_label.endswith(sp_label):
                     # some of the labels we made already include the species;
                     # remove it to make a cleaner desc
-                    phene_label = re.sub(r' in '+sp_label, '', phene_label)
+                    phene_label = re.sub(r' in ' + sp_label, '', phene_label)
                 desc = ' '.join(
                     ("High incidence of", phene_label, "in", breed_label,
                      "suggests it to be a model of disease", oid + "."))
