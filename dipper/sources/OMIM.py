@@ -58,7 +58,7 @@ class OMIM(OMIMSource):
         'morbidmap': {
             'file': 'morbidmap.txt',
             'url': OMIMFTP + '/morbidmap.txt',
-            'clean': OMIMURL,
+            'clean': OMIMURL + 'morbidmap.txt',
             'columns': [  # expected
                 '# Phenotype',
                 'Gene Symbols',
@@ -70,7 +70,7 @@ class OMIM(OMIMSource):
             'file': 'phenotypic_series_title_all.txt',
             'url': 'https://omim.org/phenotypicSeriesTitles/all?format=tsv',
             'headers': {'User-Agent': USER_AGENT},
-            'clean': OMIMURL,
+            'clean': OMIMURL + 'phenotypic_series_title_all.txt',
             'columns': [  # expected
                 "Phenotypic Series Title",
                 "Phenotypic Series number",
@@ -901,7 +901,10 @@ class OMIM(OMIMSource):
                     omim_curie,
                     self.globaltt['contributes to condition'],
                     series_curie)
-            elif omimtype == 'disease':
+            elif omimtype in [
+                    self.globaltt['phenotype'],
+                    self.globaltt['heritable_phenotypic_marker']
+            ]:
                 model.addSubClass(omim_curie, series_curie)
             else:
                 LOG.info('Unable to map type %s to phenotypic series', omimtype)
