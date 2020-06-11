@@ -143,3 +143,4 @@ crashlytics.properties
 crashlytics-build.properties
 
 .DS_Store
+.Rproj.user
