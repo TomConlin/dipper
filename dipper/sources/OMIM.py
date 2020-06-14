@@ -2,8 +2,9 @@ import logging
 import re
 import json
 import urllib
+import time
 from urllib.error import HTTPError
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from dipper.sources.OMIMSource import OMIMSource
 from dipper.sources.Source import USER_AGENT
@@ -203,6 +204,7 @@ class OMIM(OMIMSource):
             else:
                 maxit = len(omimids)
 
+            then = datetime.now()
             while acc < maxit:
                 end = min((maxit, acc + groupsize))
                 # iterate through the omim ids list,
@@ -223,6 +225,10 @@ class OMIM(OMIMSource):
 
                 url = OMIMAPI + urllib.parse.urlencode(omimparams)
 
+                while(datetime.now() - then) < timedelta(seconds=5):
+                    time.sleep(1)
+                then = datetime.now()
+
                 try:
                     req = urllib.request.urlopen(url)
                 except HTTPError as err:  # URLError?
@@ -231,7 +237,15 @@ class OMIM(OMIMSource):
                     if re.search(r'The API key: .* is invalid', str(error_msg)):
                         msg = "API Key not valid"
                         raise HTTPError(url, err.code, msg, err.hdrs, err.fp)
+
                     LOG.error("Failed with: %s", str(error_msg))
+
+                    # dump what we have to see how far we got.
+                    with open(
+                            './raw/omim/_' + date.today().isoformat() + '.json_partial',
+                            'w') as writer:
+                        json.dump(reponse_batches, writer)
+
                     break
 
                 resp = req.read().decode()
@@ -241,7 +255,8 @@ class OMIM(OMIMSource):
 
             # snag a copy of all the batches
 
-            with open('./raw/omim/_'+date.today().isoformat()+'.json', 'w') as writer:
+            with open(
+                    './raw/omim/_' + date.today().isoformat() + '.json', 'w') as writer:
                 json.dump(reponse_batches, writer)
 
         LOG.info(
@@ -701,7 +716,7 @@ class OMIM(OMIMSource):
             if 'allelicVariantList' in entry:
                 for alv in entry['allelicVariantList']:
                     al_num = alv['allelicVariant']['number']
-                    al_id = 'OMIM:'+str(entry_num)+'.'+str(al_num).zfill(4)
+                    al_id = 'OMIM:' + str(entry_num) + '.' + str(al_num).zfill(4)
                     al_label = None
                     al_description = None
                     if alv['allelicVariant']['status'] == 'live':
@@ -725,7 +740,7 @@ class OMIM(OMIMSource):
                         if 'dbSnps' in alv['allelicVariant']:
                             dbsnp_ids = re.split(r',', alv['allelicVariant']['dbSnps'])
                             for dnum in dbsnp_ids:
-                                did = 'dbSNP:'+dnum.strip()
+                                did = 'dbSNP:' + dnum.strip()
                                 model.addIndividualToGraph(did, None)
                                 model.addSameIndividual(al_id, did)
 
@@ -803,7 +818,7 @@ class OMIM(OMIMSource):
 
             # replace interior conjunctions, prepositions,
             # and articles with lowercase
-            if wrd.lower() in (conjunctions+little_preps+articles) and i != 1:
+            if wrd.lower() in (conjunctions + little_preps + articles) and i != 1:
                 wrd = wrd.lower()
 
             fixedwords.append(wrd)
