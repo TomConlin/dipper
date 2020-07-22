@@ -456,6 +456,7 @@ class Source:
             except urllib.error.HTTPError as httpErr:
                 # raise Exception(httpErr.read())
                 LOG.error('NETWORK issue %s\n\tFor: %s', httpErr.read(), remoteurl)
+                return False  # allows re try (e.g. not found in Cache)
             except urllib.error.URLError as urlErr:
                 LOG.error('URLError %s\n\tFor: %s', urlErr, remoteurl)
             result = response is not None

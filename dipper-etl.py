@@ -51,7 +51,7 @@ def main():
         'udp': 'UDP',
         'mgislim': 'MGISlim',
         'zfinslim': 'ZFINSlim',
-        'bgee': 'Bgee',
+        'easybgee': 'EasyBgee',
         'mydrug': 'MyDrug',
         'stringdb': 'StringDB',
         'rgd': 'RGD',
@@ -131,7 +131,7 @@ def main():
 
     species_specific = [
         'Panther', 'NCBIGene', 'BioGrid', 'UCSCBands',
-        'GeneOntology', 'Bgee', 'StringDB', 'Ensembl']
+        'GeneOntology', 'EasyBgee', 'StringDB', 'Ensembl']
 
     formats_supported = [
         'turtle', 'ttl',

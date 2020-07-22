@@ -8,8 +8,13 @@ digraph{
     }
 
     MONARCH -> "OBAN:Association" [label="rdf:type"];
-    MONARCH -> LITERAL [label="rdfs:label"];
-    MONARCH -> "GOLD|SILVER" [label="GENO:0000866 ! has_quantifier"];
+    MONARCH -> LITERAL [label="refs:label"];
+    # MONARCH -> "GOLD|SILVER" [label="GENO:0000866 ! has_quantifier"];
+    MONARCH -> "score"  [label="XXX:score"];
+    # MONARCH -> "rank"  [label="XXX:rank"];
+    MONARCH -> "specificity"  [label="XXX:specificity"];
+
+
 
     # may need different predicate
     MONARCH -> "Stage:Id" [label="NCIT:C48308 ! Stage"];

@@ -109,6 +109,8 @@ Note that `stage` is an important component for understanding
 what a "count" means in this data model.
 Which susgests `stage` information may need to make its way into the front end.
 
+It is also quite unfortunate the README
+now says the stage ontology is unmaintained.
 
 --------------------------------------------------------------
 ```
@@ -308,8 +310,283 @@ I will back burner this aspect till then and work on the rest.
 
 
 
+2020 June
 
 
+DipperCache has been pulling and converting their new file (they renamed easybgee)
+to indexed and compressed sqlite3 instance since it came out in April.
+
+wget -N https://archive.monarchinitiative.org/DipperCache/bgee/easybgee.sqlite3.gz
+
+--------------------------------------------------------------
+
+it looks as though they are also producing a RDF file.
+
+ftp://ftp.bgee.org/current/rdf_easybgee.zip   (fetching is a slog on my home network)
+
+and they have a tiny covid19  subset file there as well
+
+ftp://ftp.bgee.org/current/rdf_easybgee_covid19_view.zip
+
+
+# covid diversion while the main ttl file is still downloading)
+covid dataset is split up into a file per predicate (~55 files)
+
+
+although the RDF files have the extention .ttl
+they are seem to be mostly valid ntriples. (a -> rdf:type)
+but they are not quite valid turtle either  e.g. missing namespaces
+
+cat covid19_ttl/*.ttl > bgee_covid19.ttl
+rapper -i turtle -c  bgee_covid19.ttl
+
+rapper: Parsing URI file:///data/Projects/Monarch/dipper/resources/bgee/data/bgee_covid19.ttl with parser turtle
+rapper: Error -  - The namespace prefix in "xsd:double" was not declared.
+rapper: Error - URI file:///data/Projects/Monarch/dipper/resources/bgee/data/bgee_covid19.ttl:91632 - Failed to convert qname xsd:double to URI
+rapper: Error - URI file:///data/Projects/Monarch/dipper/resources/bgee/data/bgee_covid19.ttl:91632 - syntax error, unexpected $end, expecting URI literal or QName
+rapper: Failed to parse file bgee_covid19.ttl turtle content
+rapper: Parsing returned 137477 triples
+
+
+
+########################
+
+back on task
+zcat easybgee.sqlite3.gz > bgee
+
+
+yea... that is not working.
+
+the new mysqldump from bgee has unescaped new lines
+(Which I have now deleted)
+
+which then
+
+
+```
+sqlite> .once ./easybgee_sqlite3_schema.ddl
+sqlite> .fullschema
+
+```
+
+```
+~/GitHub/SQLiteViz/sqlite_dot.awk easybgee_sqlite3_schema.ddl > easybgee_sqlite3_schema.gv
+
+dot -T svg  bgee_sqlite3_schema.gv > bgee_sqlite3_schema.svg
+```
+
+
+the main changes are the addtion od four fields in the globalExpression table.
+
+,  `rank` decimal(9,2)  NOT NULL
+,  `score` decimal(9,5)  NOT NULL
+,  `propagationOrigin` varchar(20) NOT NULL
+,  `callType` varchar(20) NOT NULL
+
+
+where "propagationOrigin" tells us if the results are inffered
+
+1206369|all
+66855858|self
+7317246|self and ancestor
+24727198|self and descendant
+
+which pointedly does not have **any** which are strictly propagated ... not expected
+
+and "callType" is:
+
+64764646|EXPRESSED
+35342025|NOT_EXPRESSED
+
+
+"rank"
+min max average
+
+1|	55062|	20560.409237503
+
+"score"
+min max average
+0.01|	100|	52.3943358920252
+
+
+
+
+###############################################
+
+
+playing with the data I have some questions
+
+It seems every record score includes expression of self.
+either alone or in combination with up/down stream records.
+confirm every score is for an observation (even if it is obfuscated with adgecent scores)
+
+spit out the taxon and score for all the expressed "gold"  quality records
+
+get the list of taxon
+
+cut -f1 -d \| tax_score.unl | sort -un > taxon.list
+
+# partition the scores by species
+for t in $(cat taxon.list) ; do
+    awk -F'|' -v"tax=$t" '$1==tax{print $2}' tax_score.unl > $t.score;
+done
+
+
+# find a cutoff score per species... relative best of the best score
+# Where lower is better.   hmmm. human is best & zebrafish is worse
+
+for t in $(cat taxon.list); do echo -e "$t\t$(uniq -c $t.score | otsu.awk)"; done > taxon_threshold.tsv
+
+# generate queries that filter on the threshold
+
+../generate_threshold_query.awk  taxon_threshold.tsv  > select_filtered.sql
+
+run the queries & save the results
+
+sqlite> .output  bgee_filtered.tsv
+sqlite> .read  select_filtered.sql
+sqlite> .output  stdout
+
+
+# chech output volume
+
+wc -l < bgee_filtered.tsv
+2,162,464
+
+# (old top 20 of anything resulted in 4,377,842)
+
+
+# by species
+ cut -f1 -d\| bgee_filtered.tsv | sort | uniq -c | sort -nr
+ 343954 7955
+ 255959 9606
+ 230027 7227
+ 207945 10090
+ 157336 8364
+ 144972 9615
+ 129918 9598
+  91843 6239
+  89218 13616
+  82808 9796
+  76543 10116
+  65528 9823
+  65290 9544
+  65213 9986
+  33917 9031
+  30350 28377
+  29481 9913
+  25175 9258
+  18529 9593
+  12742 9685
+   5716 10141
+
+
+----------------------------------------
+
+select count(*) , species.speciesID
+ from globalExpression
+  join globalCond on globalExpression.globalConditionId == globalCond.globalConditionId
+  join species on globalCond.speciesId == species.speciesId
+  join gene on globalExpression.bgeeGeneId == gene.bgeeGeneId
+   and species.speciesId == gene.speciesId
+  join anatEntity on globalCond.anatEntityId == anatEntity.anatEntityId
+ where callType == 'EXPRESSED' and summaryQuality = 'GOLD'
+ group by species.speciesID order by 1
+;
+
+
+# look as what portiom of available are acccepted.
+
+5716/39050|10141
+12742/55120|9685
+18529/74530|9593
+25175/105998|9258
+30350/130284|28377
+33917/136230|9031
+29481/139241|9913
+65213/272402|9986
+91843/313309|6239
+65528/344058|9823
+76543/352386|10116
+82808/369100|9796
+89218/400773|13616
+157336/414173|8364
+129918/528441|9598
+65290/544929|9544
+144972/682701|9615
+343954/785715|7955
+230027/890622|7227
+207945/6558527|10090
+255959/9180553|9606
+
+# As percantages  of expressed gold per species ...
+awk 'NR==FNR{n[$2]=$1}NR!=FNR{d[$2]=$1}END{for(t in d){if(t in n){printf("%i\t%.2f%%\n",t,n[t]/d[t]*100)}}}' bgee_filtered.count bgee_unfiltered.tsv | sort -k2nr
+7955	43.78%
+8364	37.99%
+6239	29.31%
+7227	25.83%
+9031	24.90%
+9593	24.86%
+9598	24.59%
+9986	23.94%
+9258	23.75%
+28377	23.30%
+9685	23.12%
+9796	22.44%
+13616	22.26%
+10116	21.72%
+9615	21.24%
+9913	21.17%
+9823	19.05%
+10141	14.64%
+9544	11.98%
+10090	3.17%
+9606	2.79%
+
+mostly around the top quarter of the best quality expression.
+
+
+# loking at the distrtibutions and cutoff in R-Studio 
+# I am underwhelmed with the significance.
+
+
+select count(*), species.speciesID
+   ...>  from globalExpression 
+   ...>   join globalCond on globalExpression.globalConditionId == globalCond.globalConditionId 
+   ...>   join species on globalCond.speciesId == species.speciesId 
+   ...>   join gene on globalExpression.bgeeGeneId == gene.bgeeGeneId 
+   ...>    and species.speciesId == gene.speciesId 
+   ...>   join anatEntity on globalCond.anatEntityId == anatEntity.anatEntityId 
+   ...>  where callType == 'EXPRESSED' and summaryQuality = 'GOLD'
+   ...>  group by species.speciesID order by 1
+   ...> ;
+39050|10141
+55120|9685
+74530|9593
+105998|9258
+130284|28377
+136230|9031
+139241|9913
+272402|9986
+313309|6239
+344058|9823
+352386|10116
+369100|9796
+400773|13616
+414173|8364
+528441|9598
+544929|9544
+682701|9615
+785715|7955
+890622|7227
+6558527|10090
+9180553|9606
+
+
+22,318,142 total
+
+taking a threshold eliminates ~90% 
+It will have to come down to a policy/trust/usefulness choice.
 
 
 

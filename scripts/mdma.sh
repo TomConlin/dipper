@@ -10,9 +10,11 @@
     # copy main turtle files to ntriple format
     # https://github.com/drobilla/serd
     mkdir -p ntriples
-    if [ -e  out/*.nt ] ; then
-        mv -u out/*.nt ntriples
-    fi
+
+    # avoid redundant ntriple files in botb ntriples/ and rdf/ dirs
+    #if [ -e  out/*.nt ] ; then
+    mv -u out/*.nt ntriples/
+    #fi
 
     # enable extended gobbing for selecting filenames without an underbar
     shopt -s extglob

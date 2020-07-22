@@ -13,6 +13,7 @@ from dipper.sources.Source import Source
 from dipper.models.assoc.D2PAssoc import D2PAssoc
 from dipper.models.Reference import Reference
 from dipper.models.Model import Model
+from dipper.models.BiolinkVocabulary import BioLinkVocabulary as blv
 from dipper import config
 
 LOG = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ LOG = logging.getLogger(__name__)
 # summer 2018 PR mentioned switching to the new format
 PNR = 'http://compbio.charite.de/jenkins/job/hpo.annotations.current'
 HPOADL2 = PNR + '/lastSuccessfulBuild/artifact/current'
-              # '/lastSuccessfulBuild/artifact/misc_2018'   dissapeared by 2020 03
+              # '/lastSuccessfulBuild/artifact/misc_2018'   disappeared by 2020 03
 
 # Fall 2018 CM made a mondo version of common disease (but we decided to hold off now)
 GITAPI = "https://api.github.com/repos/monarch-initiative"
@@ -60,7 +61,7 @@ class HPOAnnotations(Source):
             'file': 'phenotype.hpoa',
             'url':  HPOADL2 + '/phenotype.hpoa',
             'columns': [
-                'DatabaseID',
+                '#DatabaseID',
                 'DiseaseName',
                 'Qualifier',
                 'HPO_ID',
@@ -206,7 +207,7 @@ class HPOAnnotations(Source):
             for row in reader:
                 row = [str(col).strip() for col in row]
 
-                disease_id = row[col.index('DatabaseID')]
+                disease_id = row[col.index('#DatabaseID')]
                 # 98246 OMIM
                 # 68646 ORPHA
                 # 297 DECIPHER
@@ -224,7 +225,7 @@ class HPOAnnotations(Source):
                 if row[col.index('Qualifier')] == 'NOT':
                     continue
 
-                pheno_id = row[col.index('HPO_ID')]
+                hpo_id = row[col.index('HPO_ID')]
                 publist = row[col.index('Reference')]
                 eco_id = self.resolve(row[col.index('Evidence')])
                 onset = row[col.index('Onset')]
@@ -235,7 +236,7 @@ class HPOAnnotations(Source):
                 # row[col.index('Biocuration')]  unused
 
                 # LOG.info(
-                #    'adding <%s>-to-<%s> because <%s>', disease_id, pheno_id, eco_id)
+                #    'adding <%s>-to-<%s> because <%s>', disease_id, hpo_id, eco_id)
 
                 model.addClassToGraph(disease_id)
                 model.addClassToGraph(pheno_id)
@@ -244,13 +245,19 @@ class HPOAnnotations(Source):
                     model.addClassToGraph(onset)
 
                 if asp in ('P', 'M'):  # phenotype? abnormality or mortality
+                    model.addClassToGraph(hpo_id)
                     assoc = D2PAssoc(  # default rel=self.globaltt['has phenotype']
-                        graph, self.name, disease_id, pheno_id,
-                        onset, freq)
+                        graph, self.name, disease_id, hpo_id, onset, freq
+                    )
                 elif asp in ('I', 'C'):  # inheritance pattern or clinical course/onset
+                    model.addClassToGraph(hpo_id)
                     assoc = D2PAssoc(
-                        graph, self.name, disease_id, pheno_id,
-                        rel=self.globaltt['has disposition'])
+                        graph,
+                        self.name,
+                        disease_id,
+                        hpo_id,
+                        rel=self.globaltt['has disposition']
+                    )
                 else:
                     LOG.error("Unknown aspect : %s at line %i", asp, reader.line_num)
 
@@ -259,7 +266,9 @@ class HPOAnnotations(Source):
                     self.graph.addTriple(
                         assoc.get_association_id(),
                         self.globaltt['has_sex_specificty'],
-                        self.globaltt[sex])
+                        self.globaltt[sex],
+                        object_category=blv.terms['BiologicalSex']
+                    )
 
                 # Publication
                 # cut -f 5 phenotype.hpoa | grep ";" | tr ';' '\n' | cut -f1 -d ':' |\
