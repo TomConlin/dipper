@@ -7,7 +7,6 @@ from dipper.sources.Source import Source
 from dipper.sources.ZFIN import ZFIN
 from dipper.models.Model import Model
 
-
 LOG = logging.getLogger(__name__)
 ZPCURATION = 'http://purl.obolibrary.org/obo/zp/'
 
@@ -139,13 +138,13 @@ class ZFINSlim(Source):
 
                 zp_id = zfin_parser._map_octuple_to_phenotype(
                     subterm1_id,
-                                                              pc_rel_id,
-                                                              superterm1_id,
-                                                              quality_id,
-                                                              subterm2_id,
-                                                              pc_rel2_id,
-                                                              superterm2_id,
-                                                              modifier)
+                    pc_rel_id,
+                    superterm1_id,
+                    quality_id,
+                    subterm2_id,
+                    pc_rel2_id,
+                    superterm2_id,
+                    modifier)
 
                 gene_curie = "ZFIN:{0}".format(gene_id)
                 model.makeLeader(gene_curie)

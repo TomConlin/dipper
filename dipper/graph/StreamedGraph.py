@@ -25,7 +25,7 @@ class StreamedGraph(DipperGraph):
     with open(
             os.path.join(
                 os.path.dirname(__file__),
-                '../../translationtable/GLOBAL_TERMS.yaml')) as fhandle:
+                         '../../translationtable/GLOBAL_TERMS.yaml')) as fhandle:
         globaltt = yaml.safe_load(fhandle).copy()
         globaltcid = {v: k for k, v in globaltt.items()}
 
@@ -73,6 +73,7 @@ class StreamedGraph(DipperGraph):
             object_category_iri = self._getnode(object_category)
         else:
             object_category_iri = None
+
         if obj is not None:
             self.serialize(
                 subject_iri, predicate_iri, obj, object_is_literal, literal_type,
@@ -124,6 +125,7 @@ class StreamedGraph(DipperGraph):
                     "<{}> <{}> <{}> .".format(obj, predicate_category_iri,
                                               object_category_iri)
         all_triples = "\n".join([triple, biolink_category_triples])
+
         if self.file_handle is None:
             print(all_triples)
         else:

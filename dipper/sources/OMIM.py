@@ -19,7 +19,6 @@ from dipper.utils.romanplus import romanNumeralPattern, fromRoman, toRoman
 
 LOG = logging.getLogger(__name__)
 
-
 # omimftp key EXPIRES
 # get a new one here: https://omim.org/help/api
 
@@ -243,13 +242,11 @@ class OMIM(OMIMSource):
                         raise HTTPError(url, err.code, msg, err.hdrs, err.fp)
 
                     LOG.error("Failed with: %s", str(error_msg))
-
                     # dump what we have to see how far we got.
                     with open(
                             './raw/omim/_' + date.today().isoformat() + '.json_partial',
                             'w') as writer:
                         json.dump(reponse_batches, writer)
-
                     break
 
                 resp = req.read().decode()
@@ -385,6 +382,14 @@ class OMIM(OMIMSource):
         else:
             # omim is NOT subclass_of D|P|or ?...
             model.addClassToGraph(omim_curie, newlabel)
+        model.addSynonym(omim_curie, label)
+
+        # add the alternate labels and includes as synonyms
+        for label in other_labels:
+            model.addSynonym(omim_curie, label, model.globaltt['has_related_synonym'])
+            model.addSynonym(
+                omim_curie, label, model.globaltt['has_related_synonym'])
+
         model.addSynonym(omim_curie, label)
 
         # add the alternate labels and includes as synonyms
@@ -773,6 +778,7 @@ class OMIM(OMIMSource):
                         for ref in publist[al_id]:
                             pmid = ref_to_pmid[int(ref)]
                             graph.addTriple(pmid, self.globaltt['is_about'], al_id)
+
                         # look up the pubmed id in the list of references
                         if 'dbSnps' in alv['allelicVariant']:
                             dbsnp_ids = re.split(r',', alv['allelicVariant']['dbSnps'])
@@ -930,6 +936,7 @@ class OMIM(OMIMSource):
         omimtype = self.omim_type[omim_num]
         # the phenotypic series mappings
         serieslist = []
+
         if 'phenotypeMapList' in entry:
             phenolist = entry['phenotypeMapList']
             for phl in phenolist:
@@ -987,6 +994,7 @@ class OMIM(OMIMSource):
         orpha_mappings = []
         if 'externalLinks' in entry:
             links = entry['externalLinks']
+
             if 'orphanetDiseases' in links:
                 # triple semi-colon delimited list of
                 # double semi-colon delimited orphanet ID/disease pairs
@@ -997,8 +1005,8 @@ class OMIM(OMIMSource):
                     orpha_num = orphdis[0].strip()
                     orpha_label = orphdis[2].strip()
                     if orpha_num != 'None':
-                    orpha_curie = 'ORPHA:' + orpha_num
-                    orpha_mappings.append(orpha_curie)
+                        orpha_curie = 'ORPHA:' + orpha_num
+                        orpha_mappings.append(orpha_curie)
                         model.addClassToGraph(
                             orpha_curie,
                             orpha_label,
@@ -1069,6 +1077,7 @@ class OMIM(OMIMSource):
 
         ref_to_pmid = {}
         entry_num = entry['mimNumber']
+
         if 'referenceList' in entry:
             reflist = entry['referenceList']
             for rlst in reflist:

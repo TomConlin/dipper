@@ -239,7 +239,6 @@ class HPOAnnotations(Source):
                 #    'adding <%s>-to-<%s> because <%s>', disease_id, hpo_id, eco_id)
 
                 model.addClassToGraph(disease_id)
-                model.addClassToGraph(pheno_id)
                 model.addClassToGraph(eco_id)
                 if onset is not None and onset != '':
                     model.addClassToGraph(onset)

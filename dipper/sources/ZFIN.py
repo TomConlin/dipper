@@ -1490,6 +1490,7 @@ class ZFIN(Source):
                     assoc.add_source(pub_id)
                     assoc.add_association_to_graph()
                     assoc_id = assoc.get_association_id()
+
                     if env_curie not in self.environment_hash or len(
                             self.environment_hash.get(env_curie)) > 0:
                         model.addComment(assoc_id, 'Legacy environment id ' + env_curie)
@@ -1560,7 +1561,7 @@ class ZFIN(Source):
                 ncbi_gene_id = 'NCBIGene:' + ncbi_gene_id.strip()
 
                 self.id_label_map[gene_id] = gene_symbol
-
+                
                 if not self.test_mode and limit is not None and reader.line_num > limit:
                     break
 
@@ -1630,6 +1631,7 @@ class ZFIN(Source):
                 model.addSynonym(
                     genomfeat_curie, genomic_feature_abbreviation
                 )
+
                 if construct_id is not None and construct_id != '':
                     construct_curie = ':'.join(('ZFIN', construct_id))
                     geno.addConstruct(construct_curie, construct_name, construct_so_id)
@@ -2691,7 +2693,6 @@ class ZFIN(Source):
                     fish_id, fish_label, fish_taxon, 'zebrafish')
 
                 assoc = Assoc(graph, self.name)
-
                 assoc.set_subject(fish_id)
                 assoc.set_object(disease_id)
                 assoc.set_relationship(self.globaltt['is model of'])

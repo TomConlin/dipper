@@ -610,33 +610,33 @@ pipeline {
                 Stage('Danio'){
                     stages {
                         stage("ZFIN") {
-                    when {
-                        anyOf {
-                            expression { env.RUN_ALL != null }
+                            when {
+                                anyOf {
+                                    expression { env.RUN_ALL != null }
                                     expression { env.ZFIN != null }
-                        }
-                    }
-                    steps {
-                        sh '''
+                                }
+                            }
+                            steps {
+                                sh '''
                                     SOURCE=zfin
-                            $DIPPER --sources $SOURCE
-                            scp ./out/${SOURCE}.ttl ./out/${SOURCE}_dataset.ttl $MONARCH_DATA_DEST
-                        '''
-                    }
-                }
-                        stage("ZFINSlim") {
-                    when {
-                        anyOf {
-                            expression { env.RUN_ALL != null }
-                                    expression { env.ZFINSLIM != null }
+                                    $DIPPER --sources $SOURCE
+                                    scp ./out/${SOURCE}.ttl ./out/${SOURCE}_dataset.ttl $MONARCH_DATA_DEST
+                                '''
+                            }
                         }
-                    }
-                    steps {
-                        sh '''
+                        stage("ZFINSlim") {
+                            when {
+                                anyOf {
+                                    expression { env.RUN_ALL != null }
+                                    expression { env.ZFINSLIM != null }
+                                }
+                            }
+                            steps {
+                                sh '''
                                     SOURCE=zfinslim
-                            $DIPPER --sources $SOURCE
-                            scp ./out/${SOURCE}.ttl ./out/${SOURCE}_dataset.ttl $MONARCH_DATA_DEST
-                        '''
+                                    $DIPPER --sources $SOURCE
+                                    scp ./out/${SOURCE}.ttl ./out/${SOURCE}_dataset.ttl $MONARCH_DATA_DEST
+                                '''
                             }
                         }
                     }

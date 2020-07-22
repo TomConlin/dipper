@@ -208,6 +208,7 @@ class Orphanet(Source):
                     gene_curie,
                     rel_curie
                 )
+
                 g2p_assoc.add_evidence(eco_id)
                 g2p_assoc.add_association_to_graph()
 

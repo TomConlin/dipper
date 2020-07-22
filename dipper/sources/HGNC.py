@@ -6,7 +6,6 @@ from dipper.sources.OMIMSource import OMIMSource
 from dipper.models.Genotype import Genotype
 from dipper.models.Model import Model
 from dipper.models.GenomicFeature import Feature, makeChromID
-
 from dipper.models.BiolinkVocabulary import BioLinkVocabulary as blv
 
 LOG = logging.getLogger(__name__)
